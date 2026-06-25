@@ -1,0 +1,72 @@
+[
+  {
+    "name": "admin:settime button shows current broadcast time",
+    "steps": [
+      {
+        "send": { "callback": "admin:settime", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "🕐 Current broadcast time: 09:00 UTC.\n\nUse /settime HH:MM to change it (24-hour format)." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "admin:report button shows delivery report",
+    "steps": [
+      {
+        "send": { "callback": "admin:report", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "📊 Broadcast Report\n\nToday's time: 09:00 UTC\nSent: 0 successful, 0 failed\nTotal attempts: 0" }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "admin:addjoke button prompts for joke text",
+    "steps": [
+      {
+        "send": { "callback": "admin:addjoke", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "Send me the joke text you want to add:" }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "admin /settime command updates schedule",
+    "steps": [
+      {
+        "send": { "text": "/settime 10:30", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "✅ Broadcast time set to 10:30 UTC." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "non-admin access to owner controls is denied",
+    "steps": [
+      {
+        "send": { "callback": "admin:settime", "chatId": 999, "userId": 999 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "This feature is for the bot owner only." }
+          }
+        ]
+      }
+    ]
+  }
+]

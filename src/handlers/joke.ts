@@ -1,7 +1,7 @@
 import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
 import { registerMainMenuItem, inlineButton, inlineKeyboard } from "../toolkit/index.js";
-import { getRandomJoke, getUser, upsertUser } from "../store.js";
+import { getRandomJoke } from "../store.js";
 
 registerMainMenuItem({ label: "😂 Random Joke", data: "joke:random", order: 10 });
 
@@ -18,19 +18,6 @@ async function sendRandomJoke(ctx: Ctx, edit: boolean) {
       await ctx.reply("The joke repository is empty. Please check back later.", { reply_markup: backToMenu });
     }
     return;
-  }
-
-  // Track user in the store
-  const chatId = ctx.chat?.id;
-  if (chatId) {
-    const existing = await getUser(chatId);
-    if (!existing) {
-      await upsertUser({
-        telegram_id: chatId,
-        display_name: ctx.from?.first_name ?? "User",
-        opt_out_flag: false,
-      });
-    }
   }
 
   if (edit) {

@@ -50,4 +50,15 @@ describe("buildBot handler loader", () => {
     expect(suite.failed).toBe(0);
     expect(suite.passed).toBeGreaterThan(0);
   });
+
+  it("loads src/handlers/broadcast.ts so admin callback flows work", async () => {
+    process.env.ADMIN_TELEGRAM_ID = "1";
+    try {
+      const suite = await runSpecs(() => buildBot("test-token"), loadSpecs("broadcast.json"));
+      expect(suite.failed).toBe(0);
+      expect(suite.passed).toBeGreaterThan(0);
+    } finally {
+      delete process.env.ADMIN_TELEGRAM_ID;
+    }
+  });
 });
