@@ -1,11 +1,14 @@
+import { randomUUID } from "node:crypto";
 import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
-import { registerMainMenuItem, inlineButton, inlineKeyboard } from "../toolkit/index.js";
-import { getRandomJoke, getAllSubscribedUsers, addSendLog, getRecentSendLogs, getSchedule, setSchedule, addJoke, getLastBroadcastDate, setLastBroadcastDate } from "../store.js";
+import { registerMainMenuItem, inlineButton, inlineKeyboard, paginate } from "../toolkit/index.js";
+import { getRandomJoke, getAllSubscribedUsers, addSendLog, getRecentSendLogs, getSchedule, setSchedule, addJoke, getLastBroadcastDate, setLastBroadcastDate, getAllJokes, removeJoke } from "../store.js";
 
 registerMainMenuItem({ label: "🕐 Set Time", data: "admin:settime", order: 90 });
 registerMainMenuItem({ label: "➕ Add Joke", data: "admin:addjoke", order: 91 });
 registerMainMenuItem({ label: "📊 Report", data: "admin:report", order: 92 });
+registerMainMenuItem({ label: "📋 List Jokes", data: "admin:listjokes", order: 93 });
+registerMainMenuItem({ label: "🗑 Remove Joke", data: "admin:removejoke", order: 94 });
 
 const composer = new Composer<Ctx>();
 
@@ -61,13 +64,71 @@ composer.callbackQuery("admin:addjoke", async (ctx) => {
 
 composer.on("message:text", async (ctx, next) => {
   if (!isAdmin(ctx)) return next();
-  if (ctx.session.step !== "awaiting_joke_text") return next();
   const text = ctx.message.text;
   if (text.startsWith("/")) return next();
-  const id = String(Date.now());
-  await addJoke({ id, text, source: "manual", language: "en" });
-  ctx.session.step = undefined;
-  await ctx.reply("✅ Joke added!", { reply_markup: backToMenu });
+
+  if (ctx.session.step === "awaiting_joke_text") {
+    const id = randomUUID();
+    await addJoke({ id, text, source: "manual", language: "en" });
+    ctx.session.step = undefined;
+    await ctx.reply("✅ Joke added!", { reply_markup: backToMenu });
+    return;
+  }
+
+  if (ctx.session.step === "awaiting_joke_id") {
+    ctx.session.step = undefined;
+    const removed = await removeJoke(text.trim());
+    if (removed) {
+      await ctx.reply(`✅ Joke #${text.trim()} removed.`, { reply_markup: backToMenu });
+    } else {
+      await ctx.reply(`Joke #${text.trim()} not found.`, { reply_markup: backToMenu });
+    }
+    return;
+  }
+
+  return next();
+});
+
+// ── List jokes ──
+const JOKES_PER_PAGE = 5;
+
+async function showJokePage(ctx: Ctx, page: number) {
+  const jokes = await getAllJokes();
+  if (jokes.length === 0) {
+    await ctx.editMessageText("No jokes in the repository yet. Use ➕ Add Joke to add one.", { reply_markup: backToMenu });
+    return;
+  }
+  const p = paginate(jokes, { page, perPage: JOKES_PER_PAGE, callbackPrefix: "jokepage" });
+  const lines = p.pageItems.map(j => `#${j.id}: ${j.text}`);
+  const header = `📋 Jokes (page ${p.page + 1}/${p.totalPages}, ${jokes.length} total):`;
+  const msg = `${header}\n\n${lines.join("\n\n")}`;
+  const keyboard = inlineKeyboard([
+    ...p.controls.inline_keyboard,
+    [inlineButton("⬅️ Back to menu", "menu:main")],
+  ]);
+  await ctx.editMessageText(msg, { reply_markup: keyboard });
+}
+
+composer.callbackQuery("admin:listjokes", async (ctx) => {
+  if (!(await gate(ctx))) return;
+  await showJokePage(ctx, 0);
+});
+
+composer.callbackQuery(/^jokepage:(prev|next):(\d+)$/, async (ctx) => {
+  if (!isAdmin(ctx)) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
+  await ctx.answerCallbackQuery();
+  const page = Number(ctx.match[2]);
+  await showJokePage(ctx, page);
+});
+
+// ── Remove joke flow ──
+composer.callbackQuery("admin:removejoke", async (ctx) => {
+  if (!(await gate(ctx))) return;
+  ctx.session.step = "awaiting_joke_id";
+  await ctx.editMessageText("Send me the ID of the joke you want to remove:", { reply_markup: backToMenu });
 });
 
 // ── Admin report ──
@@ -132,7 +193,9 @@ export async function runDailyBroadcast(bot: { api: { sendMessage: (chatId: numb
 
 export function startDailyBroadcastScheduler(bot: { api: { sendMessage: (chatId: number, text: string) => Promise<unknown> } }): void {
   setInterval(() => {
-    runDailyBroadcast(bot).catch(() => {});
+    runDailyBroadcast(bot).catch((err) => {
+      console.error("[jokebot] daily broadcast failed:", err);
+    });
   }, 30_000);
 }
 

@@ -68,5 +68,33 @@
         ]
       }
     ]
+  },
+  {
+    "name": "admin:listjokes button shows joke list",
+    "steps": [
+      {
+        "send": { "callback": "admin:listjokes", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "📋 Jokes (page 1/1, 5 total):\n\n#1: Why don't scientists trust atoms? Because they make up everything!\n\n#2: I told my wife she was drawing her eyebrows too high. She looked surprised.\n\n#3: Parallel lines have so much in common. It's a shame they'll never meet.\n\n#4: What do you call a fake noodle? An impasta.\n\n#5: Why did the scarecrow win an award? Because he was outstanding in his field." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "admin:removejoke button prompts for joke ID",
+    "steps": [
+      {
+        "send": { "callback": "admin:removejoke", "chatId": 1, "userId": 1 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "Send me the ID of the joke you want to remove:" }
+          }
+        ]
+      }
+    ]
   }
 ]
