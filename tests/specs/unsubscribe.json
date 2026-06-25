@@ -1,0 +1,64 @@
+[
+  {
+    "name": "/unsubscribe unsubscribes a subscribed user",
+    "steps": [
+      {
+        "send": { "text": "/subscribe", "chatId": 201 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "✅ You are now subscribed! You'll receive a daily joke at 09:00 UTC." } }
+        ]
+      },
+      {
+        "send": { "text": "/unsubscribe", "chatId": 201 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "❌ You have been unsubscribed from the daily broadcast." } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "/stop is an alternative unsubscribe",
+    "steps": [
+      {
+        "send": { "text": "/subscribe", "chatId": 202 },
+        "expect": [
+          { "method": "sendMessage" }
+        ]
+      },
+      {
+        "send": { "text": "/stop", "chatId": 202 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "❌ You have been unsubscribed from the daily broadcast." } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "not-subscribed user sees correct message",
+    "steps": [
+      {
+        "send": { "text": "/unsubscribe", "chatId": 203 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "You are not currently subscribed." } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Unsubscribe button unsubscribes via callback",
+    "steps": [
+      {
+        "send": { "text": "/subscribe", "chatId": 204 },
+        "expect": [
+          { "method": "sendMessage" }
+        ]
+      },
+      {
+        "send": { "callback": "unsubscribe:do", "chatId": 204 },
+        "expect": [
+          { "method": "editMessageText", "payload": { "text": "❌ You have been unsubscribed from the daily broadcast." } }
+        ]
+      }
+    ]
+  }
+]

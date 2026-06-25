@@ -1,0 +1,24 @@
+[
+  {
+    "name": "/joke returns a random joke",
+    "steps": [
+      {
+        "send": { "text": "/joke" },
+        "expect": [
+          { "method": "sendMessage" }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Random Joke button shows a joke",
+    "steps": [
+      {
+        "send": { "callback": "joke:random" },
+        "expect": [
+          { "method": "editMessageText" }
+        ]
+      }
+    ]
+  }
+]

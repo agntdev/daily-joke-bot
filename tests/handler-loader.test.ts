@@ -1,15 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildBot } from "../src/bot.js";
 import { runSpecs, parseBotSpec } from "../src/toolkit/index.js";
+import { _resetStore } from "../src/store.js";
+
+function loadSpecs(basename: string) {
+  const raw = JSON.parse(
+    readFileSync(new URL(`./specs/${basename}`, import.meta.url), "utf8"),
+  ) as unknown[];
+  return raw.map(parseBotSpec);
+}
 
 describe("buildBot handler loader", () => {
+  beforeEach(() => _resetStore());
+
   it("loads src/handlers/start.ts so /start replies via the harness", async () => {
-    const raw = JSON.parse(
-      readFileSync(new URL("./specs/start.json", import.meta.url), "utf8"),
-    ) as unknown[];
-    const specs = raw.map(parseBotSpec);
-    const suite = await runSpecs(() => buildBot("test-token"), specs);
+    const suite = await runSpecs(() => buildBot("test-token"), loadSpecs("start.json"));
     expect(suite.failed).toBe(0);
     expect(suite.passed).toBeGreaterThan(0);
   });
@@ -25,5 +31,23 @@ describe("buildBot handler loader", () => {
       }),
     ]);
     expect(suite.failed).toBe(0);
+  });
+
+  it("loads src/handlers/joke.ts so /joke and joke button work", async () => {
+    const suite = await runSpecs(() => buildBot("test-token"), loadSpecs("joke.json"));
+    expect(suite.failed).toBe(0);
+    expect(suite.passed).toBeGreaterThan(0);
+  });
+
+  it("loads src/handlers/subscribe.ts so /subscribe and button work", async () => {
+    const suite = await runSpecs(() => buildBot("test-token"), loadSpecs("subscribe.json"));
+    expect(suite.failed).toBe(0);
+    expect(suite.passed).toBeGreaterThan(0);
+  });
+
+  it("loads src/handlers/unsubscribe.ts so /unsubscribe, /stop and button work", async () => {
+    const suite = await runSpecs(() => buildBot("test-token"), loadSpecs("unsubscribe.json"));
+    expect(suite.failed).toBe(0);
+    expect(suite.passed).toBeGreaterThan(0);
   });
 });

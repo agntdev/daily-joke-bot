@@ -1,0 +1,47 @@
+[
+  {
+    "name": "/subscribe subscribes a new user",
+    "steps": [
+      {
+        "send": { "text": "/subscribe", "chatId": 101 },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "✅ You are now subscribed! You'll receive a daily joke at 09:00 UTC." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "already subscribed user gets confirmation",
+    "steps": [
+      {
+        "send": { "text": "/subscribe", "chatId": 102 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "✅ You are now subscribed! You'll receive a daily joke at 09:00 UTC." } }
+        ]
+      },
+      {
+        "send": { "text": "/subscribe", "chatId": 102 },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "You are already subscribed to the daily broadcast." } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Subscribe button subscribes via callback",
+    "steps": [
+      {
+        "send": { "callback": "subscribe:do", "chatId": 103 },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": { "text": "✅ You are now subscribed! You'll receive a daily joke at 09:00 UTC." }
+          }
+        ]
+      }
+    ]
+  }
+]
