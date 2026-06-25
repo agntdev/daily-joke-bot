@@ -1,7 +1,7 @@
 import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
 import { registerMainMenuItem, inlineButton, inlineKeyboard } from "../toolkit/index.js";
-import { getRandomJoke, getAllSubscribedUsers, addSendLog, getRecentSendLogs, getSchedule, setSchedule, addJoke } from "../store.js";
+import { getRandomJoke, getAllSubscribedUsers, addSendLog, getRecentSendLogs, getSchedule, setSchedule, addJoke, getLastBroadcastDate, setLastBroadcastDate } from "../store.js";
 
 registerMainMenuItem({ label: "🕐 Set Time", data: "admin:settime", order: 90 });
 registerMainMenuItem({ label: "➕ Add Joke", data: "admin:addjoke", order: 91 });
@@ -88,7 +88,6 @@ composer.callbackQuery("admin:report", async (ctx) => {
 });
 
 // ── Daily broadcast scheduler ──
-let lastBroadcastDate = "";
 
 export async function runDailyBroadcast(bot: { api: { sendMessage: (chatId: number, text: string) => Promise<unknown> } }): Promise<void> {
   const schedule = await getSchedule();
@@ -97,8 +96,9 @@ export async function runDailyBroadcast(bot: { api: { sendMessage: (chatId: numb
   const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
 
   if (nowUTC !== schedule.daily_time_utc) return;
-  if (lastBroadcastDate === todayStr) return;
-  lastBroadcastDate = todayStr;
+  const lastDate = await getLastBroadcastDate();
+  if (lastDate === todayStr) return;
+  await setLastBroadcastDate(todayStr);
 
   const joke = await getRandomJoke();
   const jokeText = joke ? joke.text : "No joke available today — check back later!";

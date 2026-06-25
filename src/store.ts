@@ -49,6 +49,7 @@ const JOKE_KEY = (id: string) => `${PREFIX}joke:${id}`;
 const JOKE_SET = `${PREFIX}jokes`;
 const LOG_KEY = `${PREFIX}sendlog`;
 const SCHEDULE_KEY = `${PREFIX}schedule`;
+const LAST_BROADCAST_KEY = `${PREFIX}lastbroadcast`;
 
 let _client: RedisLike | null = null;
 
@@ -75,6 +76,7 @@ const memUsers = new Map<string, UserRecord>();
 const memJokes = new Map<string, JokeRecord>();
 const memLogs: SendLogEntry[] = [];
 let memSchedule: BroadcastSchedule = { daily_time_utc: "09:00" };
+let memLastBroadcast = "";
 
 const SEED_JOKES: JokeRecord[] = [
   { id: "1", text: "Why don't scientists trust atoms? Because they make up everything!", source: "classic", language: "en" },
@@ -254,6 +256,25 @@ export async function setSchedule(schedule: BroadcastSchedule): Promise<void> {
   }
 }
 
+// ─── Last Broadcast Date ──────────────────────────
+export async function getLastBroadcastDate(): Promise<string> {
+  const c = client();
+  if (c) {
+    const raw = await c.get(LAST_BROADCAST_KEY);
+    return raw ?? "";
+  }
+  return memLastBroadcast;
+}
+
+export async function setLastBroadcastDate(date: string): Promise<void> {
+  const c = client();
+  if (c) {
+    await c.set(LAST_BROADCAST_KEY, date);
+  } else {
+    memLastBroadcast = date;
+  }
+}
+
 /** Reset in-memory state. Test-only hook. */
 export function _resetStore(): void {
   _client = null;
@@ -261,4 +282,5 @@ export function _resetStore(): void {
   memJokes.clear();
   memLogs.length = 0;
   memSchedule = { daily_time_utc: "09:00" };
+  memLastBroadcast = "";
 }
