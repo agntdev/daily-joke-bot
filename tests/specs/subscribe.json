@@ -1,0 +1,66 @@
+[
+  {
+    "name": "New user subscribes",
+    "steps": [
+      {
+        "send": { "text": "/subscribe" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "🔔 You're now subscribed to daily jokes! You'll receive a joke every day at 09:00 UTC." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Already-subscribed user subscribes again",
+    "steps": [
+      {
+        "send": { "text": "/subscribe" },
+        "expect": [{ "method": "sendMessage" }]
+      },
+      {
+        "send": { "text": "/subscribe" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "🔔 You're already subscribed to daily jokes!" }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Subscribed user unsubscribes",
+    "steps": [
+      {
+        "send": { "text": "/subscribe" },
+        "expect": [{ "method": "sendMessage" }]
+      },
+      {
+        "send": { "text": "/unsubscribe" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "🔕 You've been unsubscribed from daily jokes. Tap Subscribe anytime to rejoin." }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Unsubscribed user uses /stop",
+    "steps": [
+      {
+        "send": { "text": "/stop" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": { "text": "🔕 You're not currently subscribed to daily jokes." }
+          }
+        ]
+      }
+    ]
+  }
+]

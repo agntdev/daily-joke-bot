@@ -1,5 +1,6 @@
 import { buildBot } from "./bot.js";
 import { setDefaultCommands } from "./toolkit/index.js";
+import { startBroadcastScheduler } from "./handlers/broadcast.js";
 
 async function main() {
   const token = process.env.BOT_TOKEN;
@@ -8,9 +9,14 @@ async function main() {
     process.exit(1);
   }
   const bot = await buildBot(token);
-  // Publish the "/" command list to Telegram (discoverability). A button-first
-  // bot exposes only /start + /help; everything else is reached via menu buttons.
-  await setDefaultCommands(bot);
+  await setDefaultCommands(bot, [
+    { command: "joke", description: "Get a random joke" },
+    { command: "subscribe", description: "Subscribe to daily jokes" },
+    { command: "unsubscribe", description: "Unsubscribe from daily jokes" },
+    { command: "stop", description: "Unsubscribe from daily jokes" },
+    { command: "admin", description: "Admin controls (owner only)" },
+  ]);
+  startBroadcastScheduler(bot);
   bot.start();
 }
 

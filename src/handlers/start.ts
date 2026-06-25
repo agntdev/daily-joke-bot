@@ -1,23 +1,28 @@
 import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
 import { mainMenuKeyboard } from "../toolkit/index.js";
+import { isSubscribed } from "../stores/user-store.js";
 
-// The /start handler renders the bot's MAIN MENU — the primary way users operate
-// a button-first bot. A feature adds its own button by calling
-// `registerMainMenuItem(...)` in its own `src/handlers/<slug>.ts`; this handler
-// renders whatever is registered (plus a Help button), so you do NOT edit this
-// file to add a feature. Send ONE message — no placeholder line above the menu.
 const composer = new Composer<Ctx>();
 
-const WELCOME = "👋 Welcome! Tap a button below to get started.";
-
 composer.command("start", async (ctx) => {
+  const fromId = ctx.from?.id;
+  const subbed = fromId ? await isSubscribed(fromId) : false;
+  const statusLine = subbed
+    ? "🔔 You are subscribed to daily jokes at 09:00 UTC."
+    : "🔕 You are not subscribed — tap 🔔 Subscribe to get a joke every day.";
+  const WELCOME = `👋 Welcome! Tap a button below to get started.\n\n${statusLine}`;
   await ctx.reply(WELCOME, { reply_markup: mainMenuKeyboard() });
 });
 
-// "Back to menu" — re-render the main menu in place from any sub-view.
 composer.callbackQuery("menu:main", async (ctx) => {
   await ctx.answerCallbackQuery();
+  const fromId = ctx.from?.id;
+  const subbed = fromId ? await isSubscribed(fromId) : false;
+  const statusLine = subbed
+    ? "🔔 You are subscribed to daily jokes at 09:00 UTC."
+    : "🔕 You are not subscribed — tap 🔔 Subscribe to get a joke every day.";
+  const WELCOME = `👋 Welcome! Tap a button below to get started.\n\n${statusLine}`;
   await ctx.editMessageText(WELCOME, { reply_markup: mainMenuKeyboard() });
 });
 

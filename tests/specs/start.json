@@ -7,7 +7,9 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": { "text": "👋 Welcome! Tap a button below to get started." }
+            "payload": {
+              "text": "👋 Welcome! Tap a button below to get started.\n\n🔕 You are not subscribed — tap 🔔 Subscribe to get a joke every day."
+            }
           }
         ]
       }
